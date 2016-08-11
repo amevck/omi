@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div id="demo"><h2>Let AJAX change this text</h2></div>
+
+<button id="startbutton" onclick="start()">start</button>
+<textarea id = "distextarea" rows = "30" cols = "45"></textarea>
+
+<script>
+
+
+
+var evtSource = new EventSource("http://localhost:8080/myfirst/First", { withCredentials: true } );
+
+function start() {
+	
+	 evtSource.onmessage = function(e) {
+	  //var newElement = document.createElement("li");
+	  //var data = JSON.parse(e.data);
+	  //newElement.innerHTML = "message: " + e.data;
+	  document.getElementById("distextarea").innerHTML = "message: " + e.data;
+	}
+}
+</script>
+
+</body>
+</html>

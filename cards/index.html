@@ -1,0 +1,370 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+div.position {
+    background-color: #74AFAD;
+	width:50px;height:70px;padding:0px;border:1px solid #aaaaaa;
+	display:inline-block;
+}
+
+div.tru {
+    background-color:  #e654a8 ;
+	width:60px;height:70px;padding:0px;border:1px solid #aaaaaa;
+	display:inline-block;
+}
+
+<link rel="stylesheet" href="css/normalize.css">
+
+    <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Roboto+Slab'>
+
+        
+      /* NOTE: The styles were added inline because Prefixfree needs access to your styles and they must be inlined if they are on local disk! */
+      * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background-color: #0489B1;
+  font-family: "Roboto Slab", serif;
+  color: white;
+}
+
+.preload * {
+  transition: none !important;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  font-size: small;
+  text-transform: uppercase;
+  font-size: 0.7em;
+  margin-bottom: 0.35em;
+}
+
+input[type="text"], input[type="password"] {
+  width: 100%;
+  border: none;
+  padding: 0.5em;
+  border-radius: 2px;
+  margin-bottom: 0.5em;
+  color: #333;
+}
+input[type="text"]:focus, input[type="password"]:focus {
+  outline: none;
+  box-shadow: inset -1px -1px 3px rgba(0, 0, 0, 0.3);
+}
+
+button {
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+  border: none;
+  border-radius: 2px;
+  background-color: #7E5AF1;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+  color: white;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+small {
+  font-size: 1em;
+}
+
+.login--login-submit {
+  float: right;
+}
+
+.login--container {
+  width: 600px;
+  background-color: #F15A5C;
+  margin: 0 auto;
+  position: relative;
+  top: 25%;
+}
+
+.login--toggle-container {
+  position: absolute;
+  background-color: #F15A5C;
+  right: 0;
+  line-height: 2.5em;
+  width: 50%;
+  height: 120px;
+  text-align: right;
+  cursor: pointer;
+  transform: perspective(1000px) translateZ(1px);
+  transform-origin: 0% 0%;
+  transition: all 1s cubic-bezier(0.06, 0.63, 0, 1);
+  backface-visibility: hidden;
+}
+.login--toggle-container .js-toggle-login {
+  font-size: 4em;
+  text-decoration: underline;
+}
+.login--active .login--toggle-container {
+  transform: perspective(1000px) rotateY(180deg);
+  background-color: #bc1012;
+}
+
+.login--username-container, .login--password-container {
+  float: left;
+  background-color: #F15A5C;
+  width: 50%;
+  height: 120px;
+  padding: 0.5em;
+}
+
+.login--username-container {
+  transform-origin: 100% 0%;
+  transform: perspective(1000px) rotateY(180deg);
+  transition: all 1s cubic-bezier(0.06, 0.63, 0, 1);
+  background-color: #bc1012;
+  backface-visibility: hidden;
+}
+.login--active .login--username-container {
+  transform: perspective(1000px) rotateY(0deg);
+  background-color: #F15A5C;
+}
+
+footer {
+  position: absolute;
+  bottom: 12px;
+  left: 20px;
+}
+
+    
+</style>
+
+<script src="knockout-3.4.0.js"></script>
+</head>
+<body>
+
+<script>
+/*   
+   ----  JSON Structure to update the UI  ----
+   
+   Following fields should be included in the JSON string to 
+   update the view properly
+   
+    cards -> an array of card objects representing the cards 
+            in the players hand. Each card object should have 
+			an image field with the file name of the card image.
+			
+	card1 -> String showing filename of the card played by each player.
+	card2 -> String showing filename of the card played by each player.
+	card3 -> String showing filename of the card played by each player.
+    mycard ->  String showing filename of the card played by current player.
+	showHand -> Boolean value stating whether the GUI should show cards in the players hand.
+	showCards -> Boolean value stating whether the GUI should show the played cards. (card1, card2, card3, & mycard)
+	message -> The status message that should be shown.
+	
+   These are some sample JSONs to represent the user interface.
+   You should create the JSON for each player in the server and 
+   send using AJAX poling or SSE or some other way.
+   Then call the Update Function with that JSON string to update the UI.   
+*/
+var canplay = true;
+var json1 = '{ "showCards" : true }';
+var json3 = '{"cards":[{"image": "cards/1_8.png" },{"image": "cards/2_11.png"},{"image": "cards/3_10.png"},{"image": "cards/1_5.png"},{"image": "cards/1_8.png"},{"image": "cards/3_12.png"},{"image": "cards/3_13.png"}] , "card1":"cards/3_4.png" , "card2":"cards/3_1.png","showHand" : true, "showCards" : true , "message" : "Play your card"}';
+var json4 = '{"cards":[{"image": "cards/0_2.png" },{"image": "cards/1_2.png"},{"image": "cards/3_7.png"}] , "card1":"cards/3_4.png" , "card2":"cards/3_1.png", "mycard":"cards/2_2.png","showHand" : true, "showCards" : true , "message" : "Wait for others to play"}';
+var json5 = '{"cards":[{"image": "cards/0_8.png" },{"image": "cards/1_13.png"},{"image": "cards/3_11.png"}] , "card1":"cards/2_4.png" , "card2":"cards/1_1.png","card3":"cards/2_11.png", "mycard":"cards/2_2.png","showHand" : true, "showCards" : true , "message" : "Calculating score"}';
+var json6 = '{"cards":[{"image": "cards/0_8.png" },{"image": "cards/1_13.png"},{"image": "cards/3_11.png"}] , "showHand" : true, "showCards" : true , "message" : "Starting a new hand"}';
+
+/* Updating the server on players moves */
+
+/****************************************************** 
+Edit these two functions to communicate with the server.
+Hint -  you can use JQuery and Ajax here.
+*******************************************************/
+
+function PlayCard(card)
+{
+	//alert(card + " is played by the user.\nEdit this function and communicate with server instead of message box");
+	//href="desks.html"
+
+	/*var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", "http://localhost:8080/new/second", true); // true for asynchronous 
+    xmlHttp.send(null); */
+
+
+ var http = new XMLHttpRequest();
+
+if(1){
+var params = "http://localhost:8080/new/second?number="+"5786576";
+var url = "http://localhost:8080/new/second?number="+ card;
+http.open("POST", url, true);
+
+//Send the proper header information along with the request
+http.setRequestHeader("Content-type", "text/plain");
+
+http.onreadystatechange = function() {//Call a function when the state changes.
+    if(http.readyState == 4 && http.status == 200) {
+       //alert(http.responseText);
+       if(http.responseText){
+       	if(http.responseText!=1)
+       	alert(http.responseText);
+   		}
+    }
+}
+http.send(params);
+}
+else alert("you can't play now");
+}
+/******************************************************/
+
+</script>
+
+
+<h3>Ombi Multilpay</h3>
+<tr><td> 
+<h4><span data-bind="text: message"></span></h4> 
+<span data-bind="text: trick">&nbsp;</span></br></br>
+
+<span data-bind="text: round">&nbsp;</span>	
+</td></tr><td>
+
+<!--cards-->
+<br/>
+<div data-bind="visible: shouldShowPlayedCards">
+	
+
+
+</style>
+</head>
+<body>
+
+
+<table>
+  
+  
+  
+	 <tr>
+    <td></td> <td></td> <td> <td></td>
+	 <td></td> <td></td> 
+	 <td></td> 
+	<td align="right"><h3>Trump</h3></td>
+	
+  </tr>
+    <td></td>
+	
+	
+    <td><div class = "position" style = "margin-left: 110px;" >
+	<img data-bind="attr: { src: card2 }" >
+	</div>
+
+</td>
+    <td></td>
+     <td></td>
+	 <td></td>
+	 <td></td>
+    <td></td>
+    <td><div class = "tru" style = "margin-left: 110px;" >
+	<img data-bind="attr: { src: trump }" >
+	</div></td>
+  </tr>
+  <tr>
+    <td><div class = "position">
+	<img data-bind="attr: { src: card1 }">
+	</div>
+</td>
+    <td></td>
+     <td>
+	<div class = "position" style = "margin-left: 110px;">
+	<img data-bind="attr: { src: card3 }">
+	</div</td>
+    
+  </tr>
+
+    <td></td>
+    <td><div class = "position" style = "margin-left: 110px;">
+	<img data-bind="attr: { src: mycard }">
+	</div></td>
+ 
+</table>
+	
+	
+
+	
+	<br/>
+	
+	
+	
+	<br/>
+
+	<!-- Player's Card -->
+	
+</div> 
+<br/>
+	<div data-bind="foreach: cards , visible: shouldShowHand">
+		<img data-bind="attr: { src: image }, click: function(data, event) { PlayCard(image)}"/>
+	</div>
+<br/>
+<br>
+
+<script>
+
+var evtSource = new EventSource("http://localhost:8080/new/second", { withCredentials: true } );
+	 evtSource.onmessage = function(e) {
+	  //var newElement = document.createElement("li");
+	  //var data = JSON.parse(e.data);
+	  Update(e.data);
+	  //update(json1);
+	  //newElement.innerHTML = "message: " + e.data;
+	  document.getElementById("distextarea").innerHTML = "message: " + e.data;
+}
+// This is a simple *viewmodel* - JavaScript that defines the data and behavior of your UI
+function AppViewModel() {
+    var self = this;
+    self.cards = ko.observableArray([
+        { image: 'cards/0_1.png' },
+        { image: 'cards/1_2.png' },
+        { image: 'cards/0_3.png' }
+    ])
+	self.card1 = ko.observable("cards/0_1.png");
+	self.canplay=ko.observable(true);
+	self.card2 = ko.observable("cards/0_1.png");
+	self.card3 = ko.observable("cards/0_1.png");
+	self.mycard = ko.observable("cards/0_1.png");
+	self.trump = ko.observable("cards/0_1.png");
+	self.shouldShowHand = ko.observable(false);
+	self.shouldShowPlayedCards = ko.observable(false);	
+	self.message = ko.observable("waiting...");
+	self.trick = ko.observable("waiting...");
+	self.round = ko.observable("waiting...");
+
+}
+
+viewModel = new AppViewModel();
+ko.applyBindings(viewModel);
+
+function Update(statusJSON)
+{
+	var parsed = JSON.parse(statusJSON);
+	viewModel.cards(parsed.cards);
+	viewModel.card1(parsed.card1);
+	viewModel.canplay(parsed.canplay);
+	viewModel.trump(parsed.trump);
+	viewModel.card2(parsed.card2);
+	viewModel.card3(parsed.card3);
+	viewModel.mycard(parsed.mycard);
+	viewModel.shouldShowHand(parsed.showHand);
+	viewModel.shouldShowPlayedCards(parsed.showCards);
+	viewModel.message(parsed.message);
+	viewModel.trick(parsed.trick);
+	viewModel.round(parsed.round);
+}
+
+
+</script>
+
+</body>
+</html>
